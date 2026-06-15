@@ -1,76 +1,183 @@
+<script setup>
+import { ref } from 'vue'
+
+// Zustände (State) für die UI
+const isDragging = ref(false)
+const isUploading = ref(false)
+const uploadComplete = ref(false)
+const uploadProgress = ref(0)
+const fileInput = ref(null)
+const showSecret = ref(false)
+
+// Die generierten Mock-Daten
+const fileData = ref({
+  link: '',
+  secret: ''
+})
+
+// Funktion, die den Upload simuliert
+const processFile = (file) => {
+  if (!file) return
+  
+  isDragging.value = false
+  isUploading.value = true
+  uploadComplete.value = false
+  uploadProgress.value = 0
+
+  // Einen Ladevorgang von ca. 2 Sekunden simulieren
+  const interval = setInterval(() => {
+    uploadProgress.value += 10
+    if (uploadProgress.value >= 100) {
+      clearInterval(interval)
+      isUploading.value = false
+      uploadComplete.value = true
+      
+      // Zufälligen Link und Secret generieren
+      const randomId = Math.random().toString(36).substring(2, 10)
+      const randomSecret = Math.random().toString(36).substring(2, 12).toUpperCase()
+      
+      fileData.value = {
+        link: `https://mein-prototyp.app/download/${randomId}`,
+        secret: randomSecret
+      }
+    }
+  }, 200) 
+}
+
+// Drag & Drop Event-Handler
+const handleDrop = (event) => {
+  isDragging.value = false
+  const files = event.dataTransfer.files
+  if (files.length > 0) {
+    processFile(files[0])
+  }
+}
+
+// Fallback, falls jemand lieber klickt statt zieht
+const handleFileInput = (event) => {
+  const files = event.target.files
+  if (files.length > 0) {
+    processFile(files[0])
+  }
+}
+
+// Kopieren-Funktion
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    alert('Erfolgreich kopiert!')
+  } catch (err) {
+    console.error('Fehler beim Kopieren', err)
+  }
+}
+</script>
+
 <template>
-  <div>
-    <UPageHero
-      title="Nuxt Starter Template"
-      description="A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours."
-      :links="[{
-        label: 'Get started',
-        to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
-        target: '_blank',
-        trailingIcon: 'i-lucide-arrow-right',
-        size: 'xl'
-      }, {
-        label: 'Use this template',
-        to: 'https://github.com/nuxt-ui-templates/starter',
-        target: '_blank',
-        icon: 'i-simple-icons-github',
-        size: 'xl',
-        color: 'neutral',
-        variant: 'subtle'
-      }]"
-    />
+  <div class="min-h-screen bg-gray-50 text-gray-900 font-sans">
+    
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold text-gray-800">FileShare Prototyp</h1>
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-medium text-gray-500">Eingeloggt als Admin</span>
+        <!-- Simuliertes Profilbild -->
+        <img 
+          src="https://i.pravatar.cc/150?img=11" 
+          alt="Profilbild" 
+          class="w-10 h-10 rounded-full border-2 border-gray-200" 
+        />
+      </div>
+    </header>
 
-    <UPageSection
-      id="features"
-      title="Everything you need to build modern Nuxt apps"
-      description="Start with a solid foundation. This template includes all the essentials for building production-ready applications with Nuxt UI's powerful component system."
-      :features="[{
-        icon: 'i-lucide-rocket',
-        title: 'Production-ready from day one',
-        description: 'Pre-configured with TypeScript, ESLint, Tailwind CSS, and all the best practices. Focus on building features, not setting up tooling.'
-      }, {
-        icon: 'i-lucide-palette',
-        title: 'Beautiful by default',
-        description: 'Leveraging Nuxt UI\'s design system with automatic dark mode, consistent spacing, and polished components that look great out of the box.'
-      }, {
-        icon: 'i-lucide-zap',
-        title: 'Lightning fast',
-        description: 'Optimized for performance with SSR/SSG support, automatic code splitting, and edge-ready deployment. Your users will love the speed.'
-      }, {
-        icon: 'i-lucide-blocks',
-        title: '100+ components included',
-        description: 'Access Nuxt UI\'s comprehensive component library. From forms to navigation, everything is accessible, responsive, and customizable.'
-      }, {
-        icon: 'i-lucide-code-2',
-        title: 'Developer experience first',
-        description: 'Auto-imports, hot module replacement, and TypeScript support. Write less boilerplate and ship more features.'
-      }, {
-        icon: 'i-lucide-shield-check',
-        title: 'Built for scale',
-        description: 'Enterprise-ready architecture with proper error handling, SEO optimization, and security best practices built-in.'
-      }]"
-    />
+    <!-- Hauptinhalt -->
+    <main class="max-w-2xl mx-auto mt-16 px-4">
+      
+      <!-- Drag & Drop Zone -->
+      <div
+        @dragover.prevent="isDragging = true"
+        @dragleave.prevent="isDragging = false"
+        @drop.prevent="handleDrop"
+        @click="$refs.fileInput.click()"
+        :class="[
+          'border-2 border-dashed rounded-xl p-16 text-center transition-all duration-200 cursor-pointer',
+          isDragging 
+            ? 'border-blue-500 bg-blue-50 scale-[1.02]' 
+            : 'border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400'
+        ]"
+      >
+        <input type="file" ref="fileInput" class="hidden" @change="handleFileInput" />
+        <div class="text-6xl mb-4 pointer-events-none">☁️</div>
+        <h2 class="text-2xl font-semibold mb-2 pointer-events-none">Dateien hier ablegen</h2>
+        <p class="text-gray-500 pointer-events-none">oder klicken, um eine Datei von deinem Computer auszuwählen</p>
+      </div>
 
-    <UPageSection>
-      <UPageCTA
-        title="Ready to build your next Nuxt app?"
-        description="Join thousands of developers building with Nuxt and Nuxt UI. Get this template and start shipping today."
-        variant="subtle"
-        :links="[{
-          label: 'Start building',
-          to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
-          target: '_blank',
-          trailingIcon: 'i-lucide-arrow-right',
-          color: 'neutral'
-        }, {
-          label: 'View on GitHub',
-          to: 'https://github.com/nuxt-ui-templates/starter',
-          target: '_blank',
-          icon: 'i-simple-icons-github',
-          color: 'neutral',
-          variant: 'outline'
-        }]"
-      />
-    </UPageSection>
+      <!-- Ladebalken (wird nur während des Uploads gezeigt) -->
+      <div v-if="isUploading" class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div class="flex justify-between text-sm mb-2 text-gray-700">
+          <span class="font-medium">Datei wird verarbeitet...</span>
+          <span>{{ uploadProgress }}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-3">
+          <div 
+            class="bg-blue-500 h-3 rounded-full transition-all duration-300" 
+            :style="{ width: uploadProgress + '%' }"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Ergebnis-Box (wird nach erfolgreichem Upload gezeigt) -->
+      <div v-if="uploadComplete" class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-lg font-bold mb-5 text-green-600 flex items-center gap-2">
+          <span>✓</span> Upload erfolgreich abgeschlossen
+        </h3>
+        
+        <div class="space-y-5">
+          <!-- Download-Link Feld -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Teilbarer Link</label>
+            <div class="flex gap-2">
+              <input 
+                type="text" 
+                readonly 
+                :value="fileData.link" 
+                class="flex-1 bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded-lg px-4 py-2.5 focus:outline-none" 
+              />
+              <button 
+                @click="copyToClipboard(fileData.link)" 
+                class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              >
+                Kopieren
+              </button>
+            </div>
+          </div>
+
+          <!-- Secret / Passwort Feld -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Geheimes Passwort (Secret)</label>
+            <div class="flex gap-2">
+              <input 
+                :type="showSecret ? 'text' : 'password'" 
+                readonly 
+                :value="fileData.secret" 
+                class="flex-1 bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded-lg px-4 py-2.5 focus:outline-none font-mono" 
+              />
+              <button 
+                @click="showSecret = !showSecret" 
+                class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              >
+                {{ showSecret ? 'Verbergen' : 'Anzeigen' }}
+              </button>
+              <button 
+                @click="copyToClipboard(fileData.secret)" 
+                class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              >
+                Kopieren
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 </template>

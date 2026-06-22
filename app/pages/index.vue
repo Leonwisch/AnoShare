@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 
-// Zustände (State) für die UI
 const isDragging = ref(false)
 const isUploading = ref(false)
 const uploadComplete = ref(false)
@@ -9,13 +8,11 @@ const uploadProgress = ref(0)
 const fileInput = ref(null)
 const showSecret = ref(false)
 
-// Die generierten Mock-Daten
 const fileData = ref({
   link: '',
   secret: ''
 })
 
-// Funktion, die den Upload simuliert
 const processFile = (file) => {
   if (!file) return
   
@@ -24,7 +21,6 @@ const processFile = (file) => {
   uploadComplete.value = false
   uploadProgress.value = 0
 
-  // Einen Ladevorgang von ca. 2 Sekunden simulieren
   const interval = setInterval(() => {
     uploadProgress.value += 10
     if (uploadProgress.value >= 100) {
@@ -32,7 +28,6 @@ const processFile = (file) => {
       isUploading.value = false
       uploadComplete.value = true
       
-      // Zufälligen Link und Secret generieren
       const randomId = Math.random().toString(36).substring(2, 10)
       const randomSecret = Math.random().toString(36).substring(2, 12).toUpperCase()
       
@@ -44,7 +39,6 @@ const processFile = (file) => {
   }, 200) 
 }
 
-// Drag & Drop Event-Handler
 const handleDrop = (event) => {
   isDragging.value = false
   const files = event.dataTransfer.files
@@ -53,7 +47,6 @@ const handleDrop = (event) => {
   }
 }
 
-// Fallback, falls jemand lieber klickt statt zieht
 const handleFileInput = (event) => {
   const files = event.target.files
   if (files.length > 0) {
@@ -61,7 +54,6 @@ const handleFileInput = (event) => {
   }
 }
 
-// Kopieren-Funktion
 const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text)
@@ -75,12 +67,10 @@ const copyToClipboard = async (text) => {
 <template>
   <div class="min-h-screen bg-gray-50 text-gray-900 font-sans">
     
-    <!-- Header -->
     <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
       <h1 class="text-xl font-bold text-gray-800">FileShare Prototyp</h1>
       <div class="flex items-center gap-3">
         <span class="text-sm font-medium text-gray-500">Eingeloggt als Admin</span>
-        <!-- Simuliertes Profilbild -->
         <img 
           src="https://i.pravatar.cc/150?img=11" 
           alt="Profilbild" 
@@ -89,10 +79,8 @@ const copyToClipboard = async (text) => {
       </div>
     </header>
 
-    <!-- Hauptinhalt -->
     <main class="max-w-2xl mx-auto mt-16 px-4">
       
-      <!-- Drag & Drop Zone -->
       <div
         @dragover.prevent="isDragging = true"
         @dragleave.prevent="isDragging = false"
@@ -111,7 +99,6 @@ const copyToClipboard = async (text) => {
         <p class="text-gray-500 pointer-events-none">oder klicken, um eine Datei von deinem Computer auszuwählen</p>
       </div>
 
-      <!-- Ladebalken (wird nur während des Uploads gezeigt) -->
       <div v-if="isUploading" class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <div class="flex justify-between text-sm mb-2 text-gray-700">
           <span class="font-medium">Datei wird verarbeitet...</span>
@@ -125,14 +112,12 @@ const copyToClipboard = async (text) => {
         </div>
       </div>
 
-      <!-- Ergebnis-Box (wird nach erfolgreichem Upload gezeigt) -->
       <div v-if="uploadComplete" class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <h3 class="text-lg font-bold mb-5 text-green-600 flex items-center gap-2">
           <span>✓</span> Upload erfolgreich abgeschlossen
         </h3>
         
         <div class="space-y-5">
-          <!-- Download-Link Feld -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Teilbarer Link</label>
             <div class="flex gap-2">
@@ -151,7 +136,6 @@ const copyToClipboard = async (text) => {
             </div>
           </div>
 
-          <!-- Secret / Passwort Feld -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Geheimes Passwort (Secret)</label>
             <div class="flex gap-2">
